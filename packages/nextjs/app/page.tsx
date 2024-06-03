@@ -1,14 +1,30 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { Address } from "~~/components/scaffold-eth";
+import { Address, AddressInput } from "~~/components/scaffold-eth";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 const Home: NextPage = () => {
   const { address: connectedAddress } = useAccount();
+
+  const { data: delegate } = useScaffoldReadContract({
+    contractName: "YourContract",
+    functionName: "delegate",
+  });
+
+  const { data: owner } = useScaffoldReadContract({
+    contractName: "YourContract",
+    functionName: "owner",
+  });
+
+  const [newDelegate, setNewDelegate] = useState("");
+
+  const { writeContractAsync: setDelegate } = useScaffoldWriteContract("YourContract");
 
   return (
     <>
@@ -26,6 +42,42 @@ const Home: NextPage = () => {
           <div className="flex justify-center items-center space-x-2">
             <p className="my-2 font-medium">Connected Address:</p>
             <Address address={connectedAddress} />
+          </div>
+
+          <div className="flex justify-center items-center space-x-2">
+            <p className="my-2 font-medium">Delegate Address:</p>
+            <Address address={delegate} />
+          </div>
+          <div className="flex justify-center items-center space-x-2">
+            <p className="my-2 font-medium">Owner:</p>
+            <Address address={owner} />
+          </div>
+
+          <div className="flex justify-center items-center space-x-2">
+            <p className="my-2 font-medium">Set New Delegate:</p>
+            <AddressInput
+              value={newDelegate}
+              onChange={v => {
+                setNewDelegate(v);
+              }}
+            />
+          </div>
+          <div className="flex justify-center items-center space-x-2 p-4">
+            <button
+              onClick={async () => {
+                try {
+                  await setDelegate({
+                    functionName: "setDelegate",
+                    args: [newDelegate],
+                  });
+                } catch (e) {
+                  console.error("Error setting greeting:", e);
+                }
+              }}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md"
+            >
+              Set Delegate
+            </button>
           </div>
           <p className="text-center text-lg">
             Get started by editing{" "}

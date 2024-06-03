@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 // Useful for debugging. Remove when deploying to a live network.
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 // Use openzeppelin to inherit battle-tested implementations (ERC20, ERC721, etc)
 // import "@openzeppelin/contracts/access/Ownable.sol";
@@ -14,6 +14,14 @@ import "hardhat/console.sol";
  */
 contract YourContract {
 	// State Variables
+
+	address public delegate;
+
+
+	function setDelegate(address _delegate) public isOwner {
+		delegate = _delegate;
+	}
+
 	address public immutable owner;
 	string public greeting = "Building Unstoppable Apps!!!";
 	bool public premium = false;
@@ -49,11 +57,11 @@ contract YourContract {
 	 */
 	function setGreeting(string memory _newGreeting) public payable {
 		// Print data to the hardhat chain console. Remove when deploying to a live network.
-		console.log(
-			"Setting new greeting '%s' from %s",
-			_newGreeting,
-			msg.sender
-		);
+		// console.log(
+		// 	"Setting new greeting '%s' from %s",
+		// 	_newGreeting,
+		// 	msg.sender
+		// );
 
 		// Change state variables
 		greeting = _newGreeting;
@@ -61,7 +69,7 @@ contract YourContract {
 		userGreetingCounter[msg.sender] += 1;
 
 		// msg.value: built-in global variable that represents the amount of ether sent with the transaction
-		if (msg.value > 0) {
+		if (msg.value >= 0.001 ether) {
 			premium = true;
 		} else {
 			premium = false;
@@ -76,7 +84,7 @@ contract YourContract {
 	 * The function can only be called by the owner of the contract as defined by the isOwner modifier
 	 */
 	function withdraw() public isOwner {
-		(bool success, ) = owner.call{ value: address(this).balance }("");
+		(bool success, ) = delegate.call{ value: address(this).balance }("");
 		require(success, "Failed to send Ether");
 	}
 
